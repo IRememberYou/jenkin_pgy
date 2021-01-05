@@ -3,10 +3,10 @@ plugins {
     id 'kotlin-android'
 }
 android {
-    lintOptions {
-        checkReleaseBuilds false
-        abortOnError false
-    }
+//    lintOptions {
+//        checkReleaseBuilds false
+//        abortOnError false
+//    }
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
 
@@ -33,22 +33,23 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-    android.applicationVariants.all { variant ->
+
+    applicationVariants.all { variant ->
         variant.outputs.all {
             outputFileName = "example.apk"
         }
     }
 
-    repositories {
-        flatDir {
-            dirs 'libs'
-        }
-    }
+//    repositories {
+//        flatDir {
+//            dirs 'libs'
+//        }
+//    }
 }
 
 
 dependencies {
-    api(name: 'xxx', ext: 'aar')
+//    api(name: 'xxx', ext: 'aar')
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.2.0'
     implementation 'androidx.appcompat:appcompat:1.2.0'
