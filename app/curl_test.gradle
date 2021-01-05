@@ -1,0 +1,16 @@
+task getLogin() {
+    group = "publish"
+    println 'getLogin'
+    doLast {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            executable = 'curl'
+            args = ['-F', "file=1",
+                    '-F', "_api_key=2",
+                    'https://wanandroid.com/wxarticle/chapters/json']
+            standardOutput = stdout
+        }
+        String output = "test result :\r\n" + stdout.toString()
+        print output
+    }
+}

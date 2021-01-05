@@ -1,0 +1,92 @@
+private def uploadPGY(String filePath) {
+    println 'uploadPGY ....'
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        executable = 'curl'
+        args = ['-F', "file=@${filePath}", '-F', "_api_key=${rootProject.ext.pgy["apiKey"]}", rootProject.ext.pgy["uploadUrl"]]
+        standardOutput = stdout
+    }
+    String output = stdout.toString()
+    println output
+    def parsedJson = new groovy.json.JsonSlurper().parseText(output)
+    println parsedJson.data.buildQRCodeURL
+    println "版本号：" + parsedJson.data.buildVersion
+}
+
+def getTestVersionName(String suffix) {
+    def testVersion = "001"
+    if (suffix == null || suffix.isEmpty()) {
+        return String.format("%s.%s", rootProject.ext.android["versionName"], testVersion)
+    } else {
+        return String.format("%s.%s.%s", rootProject.ext.android["versionName"], testVersion, suffix)
+    }
+}
+
+def getDate() {
+    return new Date().format("yyyyMMddHHmm")
+}
+
+def getApkName(String versionName) {
+    return String.format("我是一个包-v%s.apk", versionName)
+}
+
+android.flavorDimensions "default"
+android.productFlavors {
+    offline {
+        buildConfigField "String", "DOMAIN_NAME", "\"https://offline.domain.com/\""
+        versionName getTestVersionName("offline") //修改 versionName
+    }
+
+    online {
+        buildConfigField "String", "DOMAIN_NAME", "\"https://online.domain.com/\""
+        versionName rootProject.ext.android["versionName"]
+    }
+
+    admin {
+        buildConfigField "String", "DOMAIN_NAME", "\"https://admin.domain.com/\""
+        versionName getTestVersionName("管理员") //修改 versionName
+    }
+}
+
+android.applicationVariants.all { variant ->
+    variant.outputs.all {
+        outputFileName = getApkName(variant.versionName)
+    }
+}
+
+def offlineFile = "${projectDir.absolutePath}/build/outputs/apk/offline/release/${getApkName(getTestVersionName("offline"))}"
+def adminFile = "${projectDir.absolutePath}/build/outputs/apk/admin/release/${getApkName(getTestVersionName("管理员"))}"
+def onlineFile = "${projectDir.absolutePath}/build/outputs/apk/online/release/${getApkName(rootProject.ext.android["versionName"])}"
+
+/**
+ * 执行 “uploadOfflineApk” 命令自动打测试服包，并上传到蒲公英
+ */
+task uploadOfflineApk(dependsOn: 'assembleOfflineRelease') {
+    group = "publish"
+    doLast {
+        uploadPGY(offlineFile)
+    }
+}
+
+/**
+ * 执行 “uploadAdminApk” 命令自动打超管服包，并上传到蒲公英
+ */
+task uploadAdminApk(dependsOn: 'assembleAdminRelease') {
+    group = "publish"
+    doLast {
+        uploadPGY(adminFile)
+    }
+}
+
+
+/**
+ * 执行 “uploadOnlineApk” 命令自动打正式服包，并上传到蒲公英
+ */
+task uploadOnlineApk(dependsOn: 'assembleOnlineRelease') {
+    println 'uploadOnlineApk ...'
+    group = "publish"
+    doLast {
+        println 'uploadOnlineApk do last...'
+        uploadPGY(onlineFile)
+    }
+}
