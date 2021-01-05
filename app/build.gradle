@@ -5,7 +5,24 @@ plugins {
 android {
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
+    signingConfigs {
+        def password = "test1234"
+        def alias = "test"
+        def filePath = "jptest.jks"
 
+        debug {
+            keyAlias alias
+            keyPassword password
+            storeFile file(filePath)
+            storePassword(password)
+        }
+        release {
+            keyAlias alias
+            keyPassword password
+            storeFile file(filePath)
+            storePassword(password)
+        }
+    }
     defaultConfig {
         applicationId "com.jpw.pgytest"
         minSdkVersion 19
@@ -14,6 +31,7 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.release
     }
 
     buildTypes {
